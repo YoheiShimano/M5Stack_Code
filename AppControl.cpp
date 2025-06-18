@@ -380,7 +380,7 @@ void AppControl::controlApplication(){
                 }else if(m_flag_btnB_is_pressed) {
                     setStateAction(MENU,ENTRY);
                 }else if(m_flag_btnC_is_pressed) {
-                    mlcd.displayNextMusic();
+                    mlcd.displayMusicTitle();
                 }
                 break;
 
@@ -407,19 +407,17 @@ void AppControl::controlApplication(){
                 while (mmplay.isRunningMP3()) {
                     if (!mmplay.playMP3() ||   m_flag_btnA_is_pressed) {//音楽の再生が止まっているorAボタンが押下されたら再生を止める
                         mmplay.stopMP3();
-                        setStateAction(MUSIC_STOP, ENTRY);
+                        setStateAction(MUSIC_PLAY, EXIT);
                     }else {
-                        mmplay.playMP3();
+                        setStateAction(MUSIC_PLAY, EXIT);//音楽が終了時にMUSIC_STOP画面に移行
                     }
                 break;
 
             case EXIT:
-                break;
-
-            default:
+                setBtnAllFlgFalse();
+                setStateAction(MUSIC_STOP, ENTRY);
                 break;
             }
-
             break;
 
         case MEASURE://距離測定
@@ -446,11 +444,7 @@ void AppControl::controlApplication(){
                 setBtnAllFlgFalse();
                 setStateAction(MENU, ENTRY);
                 break;
-
-            default:
-                break;
             }
-
             break;
 
         case DATE://日付と時刻の表示
