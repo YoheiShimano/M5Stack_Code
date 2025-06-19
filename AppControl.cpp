@@ -106,9 +106,11 @@ void AppControl::displayMenuInit()//メニュー画面を表示
     mlcd.displayJpgImageCoordinate(COMMON_BUTTON_UP_IMG_PATH, 0, 200);//上矢印画像
     mlcd.displayJpgImageCoordinate(COMMON_BUTTON_DECIDE_IMG_PATH, 120, 200);//決定画像
     mlcd.displayJpgImageCoordinate(COMMON_BUTTON_DOWN_IMG_PATH, 240, 200);//下矢印画像
+    setFocusState(MENU_WBGT);
+    mlcd.displayJpgImageCoordinate(MENU_WBGT_FOCUS_IMG_PATH, 0, 0);
 }
 
-void AppControl::focusChangeImg(FocusState current_state, FocusState next_state)
+void AppControl::focusChangeImg(FocusState current_state, FocusState next_state)//フォーカス
 {
     if(current_state == MENU_WBGT){
         mlcd.displayJpgImageCoordinate(MENU_WBGT_IMG_PATH, 0, 0);
@@ -131,39 +133,61 @@ void AppControl::focusChangeImg(FocusState current_state, FocusState next_state)
     }
 }
 
-void AppControl::displayWBGTInit(){
+void AppControl::displayWBGTInit(){ //熱中症モニタ
+    mlcd.displayJpgImageCoordinate(WBGT_TEMPERATURE_IMG_PATH, 0,0); //温度の座標
+    mlcd.displayJpgImageCoordinate(g_str_orange[(temperature / 10) % 10], 120, 0); //温度10の位
+    mlcd.displayJpgImageCoordinate(g_str_orange[temperature % 10], 153 , 0); //温度1の位
+    mlcd.displayJpgImageCoordinate(COMMON_ORANGEDOT_IMG_PATH, 186, 0); //ドット
+    mlcd.displayJpgImageCoordinate(g_str_orange[0], 220, 0); //小数点
+    mlcd.displayJpgImageCoordinate(WBGT_PERCENT_IMG_PATH, 96, 100);//「%」
 
+    mlcd.displayJpgImageCoordinate(WBGT_HUMIDITY_IMG_PATH, 0, 50); //湿度の座標
+    mlcd.displayJpgImageCoordinate(g_str_blue[(humidity / 10) % 10], 120, 50); // 湿度10の位
+    mlcd.displayJpgImageCoordinate(g_str_blue[humidity % 10], 153, 50); //湿度1の位
+    mlcd.displayJpgImageCoordinate(COMMON_ORANGEDOT_IMG_PATH, 186, 50); //ドット
+    mlcd.displayJpgImageCoordinate(g_str_blue[0], 220, 50);// 少数点
+    mlcd.displayJpgImageCoordinate(WBGT_DEGREE_IMG_PATH, 253, 50);//「℃」
+
+    mlcd.displayJpgImageCoordinate(COMMON_BUTTON_BACK_IMG_PATH, 120, 200);//戻る画像
 }
 
-void AppControl::displayTempHumiIndex()
-{
+void AppControl::displayTempHumiIndex(){
+
+    mlcd.displayJpgImageCoordinate(WBGT_SAFE_IMG_PATH, 0, 100);//安全
+    mlcd.displayJpgImageCoordinate(WBGT_ATTENTION_IMG_PATH, 0, 100);//注意
+    mlcd.displayJpgImageCoordinate(WBGT_ALERT_IMG_PATH, 0, 100);//警戒
+    mlcd.displayJpgImageCoordinate(WBGT_HIGH_ALERT_IMG_PATH, 0, 100);//厳重警戒
+    mlcd.displayJpgImageCoordinate(WBGT_DANGER_IMG_PATH, 0, 100);//危険
 }
 
 void AppControl::displayMusicInit(){//音楽プレイヤー押下時に表示
+    mmplay.init();
     mlcd.displayJpgImageCoordinate(MUSIC_NOWSTOPPING_IMG_PATH, 0, 0);
-    mlcd.displayJpgImageCoordinate(COMMON_BUTTON_BACK_IMG_PATH, 0, 200);
-    mlcd.displayJpgImageCoordinate(COMMON_BUTTON_PLAY_IMG_PATH, 120, 200);
+    mlcd.displayJpgImageCoordinate(COMMON_BUTTON_PLAY_IMG_PATH, 0, 200);
+    mlcd.displayJpgImageCoordinate(COMMON_BUTTON_BACK_IMG_PATH, 120, 200);
     mlcd.displayJpgImageCoordinate(COMMON_BUTTON_NEXT_IMG_PATH, 240, 200);
 }
 
 void AppControl::displayMusicStop(){//音楽プレイヤー 音楽停止時に表示
     mlcd.displayJpgImageCoordinate(MUSIC_NOWSTOPPING_IMG_PATH, 0, 0);
-    mlcd.displayJpgImageCoordinate(COMMON_BUTTON_BACK_IMG_PATH, 0, 200);
-    mlcd.displayJpgImageCoordinate(COMMON_BUTTON_PLAY_IMG_PATH, 120, 200);
+    mlcd.displayJpgImageCoordinate(COMMON_BUTTON_PLAY_IMG_PATH, 0, 200);
+    mlcd.displayJpgImageCoordinate(COMMON_BUTTON_BACK_IMG_PATH, 120, 200);
     mlcd.displayJpgImageCoordinate(COMMON_BUTTON_NEXT_IMG_PATH, 240, 200);
 }
 
 void AppControl::displayMusicTitle(){//現在の曲のタイトルを表示
-    mlcd.displayJpgImageCoordinate(MUSIC_NOWPLAYING_IMG_PATH, 10, 120);
+    mlcd.displayText(mmplay.getTitle(), 10, 120);
 }
 
 void AppControl::displayNextMusic(){//次の音楽のタイトルを表示
-    mlcd.displayJpgImageCoordinate(COMMON_BUTTON_NEXT_IMG_PATH, 10, 120);
+    mmplay.selectNextMusic();
+    mlcd.displayText(mmplay.getTitle(), 10, 120);
 }
 
 void AppControl::displayMusicPlay(){//音楽再生時に表示
-    mlcd.displayJpgImageCoordinate(COMMON_BUTTON_FILLWHITE_IMG_PATH, 10, 120);	
-    mlcd.displayJpgImageCoordinate(MUSIC_NOWPLAYING_IMG_PATH, 10, 120);
+    mlcd.displayJpgImageCoordinate(COMMON_BUTTON_FILLWHITE_IMG_PATH, 10, 120);
+    mlcd.displayJpgImageCoordinate(MUSIC_NOWPLAYING_IMG_PATH, 0, 0);
+    mlcd.displayText(mmplay.getTitle(), 10, 120);
     mlcd.displayJpgImageCoordinate(COMMON_BUTTON_STOP_IMG_PATH, 0, 200);
 }
 
@@ -194,7 +218,7 @@ void AppControl::displayMeasureDistance(){//距離測定の関数
 }
 
 void AppControl::displayDateInit(){//DATEモードの画面表示
-    mlcd.displayJpgImageCoordinate(MENU_DATE_IMG_PATH, 0, 0);
+    mlcd.displayJpgImageCoordinate(DATE_NOTICE_IMG_PATH, 0, 0);
     mlcd.displayJpgImageCoordinate(COMMON_BUTTON_BACK_IMG_PATH, 120, 200);
 
 }
@@ -340,18 +364,20 @@ void AppControl::controlApplication(){
             }
             break;
 
-            
-
-            
-
         case WBGT://熱中症測定
 
             switch (getAction()) {
             case ENTRY:
-                //
+                setBtnAllFlgFalse();//ボタンをfalseに
+                mlcd.fillBackgroundWhite();
+                displayWBGTInit();//画面表示
+                displayTempHumiIndex();//温湿度によって画像切り替え
+                setStateAction(WBGT,DO);
                 break;
 
             case DO:
+                delay(100);
+                displayTempHumiIndex();//温湿度によって画像切り替え
                 break;
 
             case EXIT:
@@ -360,7 +386,6 @@ void AppControl::controlApplication(){
             default:
                 break;
             }
-
             break;
 
         case MUSIC_STOP://音楽再生＿停止
@@ -374,24 +399,25 @@ void AppControl::controlApplication(){
                 break;
 
             case DO:
-                setBtnAllFlgFalse();
-                if(m_flag_btnA_is_pressed) {
+                if(m_flag_btnA_is_pressed) {//A(再生)ボタンが押されたら
                     setStateAction(MUSIC_STOP, EXIT);
-                }else if(m_flag_btnB_is_pressed) {
-                    setStateAction(MENU,ENTRY);
-                }else if(m_flag_btnC_is_pressed) {
-                    mlcd.displayMusicTitle();
+                }else if(m_flag_btnB_is_pressed) {//B(戻る)ボタンが押されたら
+                    setStateAction(MUSIC_STOP, EXIT);
+                }else if(m_flag_btnC_is_pressed) {//C(次の曲)ボタンが押されたら
+                    displayNextMusic();
+                    setBtnAllFlgFalse();
                 }
                 break;
-
+                
             case EXIT:
-                setStateAction(MUSIC_PLAY, ENTRY);
-                break;
-
-            default:
+                if(m_flag_btnA_is_pressed){ //A(再生)ボタンが押されている状態なら
+                    setStateAction(MUSIC_PLAY, ENTRY);
+                }else {
+                    setStateAction(MENU, ENTRY);
+                }
+                setBtnAllFlgFalse();
                 break;
             }
-
             break;
 
         case MUSIC_PLAY://音楽再生
@@ -400,18 +426,22 @@ void AppControl::controlApplication(){
             case ENTRY:
                 setBtnAllFlgFalse();
                 mlcd.fillBackgroundWhite();
-                displayMusicInit();
+                mmplay.prepareMP3();//音楽ファイルの再生に必要なインスタンスの生成とデコードを開始する
+                mmplay.playMP3();//音楽を再生 
+                displayMusicTitle();
+                setStateAction(MUSIC_PLAY, DO);
                 break;
 
             case DO:
+                displayMusicPlay();
                 while (mmplay.isRunningMP3()) {
-                    if (!mmplay.playMP3() ||   m_flag_btnA_is_pressed) {//音楽の再生が止まっているorAボタンが押下されたら再生を止める
+                    if (!mmplay.playMP3() || m_flag_btnA_is_pressed) {//音楽の再生が止まっている　or　A(停止)ボタンが押下されたら再生を止める
                         mmplay.stopMP3();
                         setStateAction(MUSIC_PLAY, EXIT);
-                    }else {
-                        setStateAction(MUSIC_PLAY, EXIT);//音楽が終了時にMUSIC_STOP画面に移行
+                        setBtnAllFlgFalse();
                     }
-                break;
+                }
+            break;
 
             case EXIT:
                 setBtnAllFlgFalse();
@@ -471,6 +501,7 @@ void AppControl::controlApplication(){
                 }
                 break;
             }
+            break;
             case EXIT:
                 setBtnAllFlgFalse();
                 setStateAction(MENU, ENTRY);

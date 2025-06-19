@@ -18,7 +18,6 @@ void MdMusicPlayer::init()
     SD.begin();
     musicfolder = SD.open("/music");
     if (!musicfolder) {
-        // musicフォルダが無かった場合、開けなかった場合
         Serial.println("musicfolder open error");
     } else {
         entry = musicfolder.openNextFile();
