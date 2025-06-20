@@ -1,5 +1,5 @@
 #include "AppControl.h"
-#include <Arduino.h>
+#include "M5All-In-One-Gadget.h"
 #include <M5Stack.h>
 
 MdLcd mlcd;
@@ -133,17 +133,18 @@ void AppControl::focusChangeImg(FocusState current_state, FocusState next_state)
     }
 }
 
-void AppControl::displayWBGTInit(){ //熱中症モニタ
+void AppControl::displayWBGTInit(){//熱中症モニタの初期画面
+    mwbgt.init();
     mlcd.displayJpgImageCoordinate(WBGT_TEMPERATURE_IMG_PATH, 0,0); //温度の座標
-    mlcd.displayJpgImageCoordinate(g_str_orange[(temperature / 10) % 10], 120, 0); //温度10の位
-    mlcd.displayJpgImageCoordinate(g_str_orange[temperature % 10], 153 , 0); //温度1の位
+    mlcd.displayJpgImageCoordinate(g_str_orange[(*temperature / 10) % 10], 120, 0); //温度10の位
+    mlcd.displayJpgImageCoordinate(g_str_orange[*temperature % 10], 153 , 0); //温度1の位
     mlcd.displayJpgImageCoordinate(COMMON_ORANGEDOT_IMG_PATH, 186, 0); //ドット
     mlcd.displayJpgImageCoordinate(g_str_orange[0], 220, 0); //小数点
     mlcd.displayJpgImageCoordinate(WBGT_PERCENT_IMG_PATH, 96, 100);//「%」
 
     mlcd.displayJpgImageCoordinate(WBGT_HUMIDITY_IMG_PATH, 0, 50); //湿度の座標
-    mlcd.displayJpgImageCoordinate(g_str_blue[(humidity / 10) % 10], 120, 50); // 湿度10の位
-    mlcd.displayJpgImageCoordinate(g_str_blue[humidity % 10], 153, 50); //湿度1の位
+    mlcd.displayJpgImageCoordinate(g_str_blue[(*humidity / 10) % 10], 120, 50); // 湿度10の位
+    mlcd.displayJpgImageCoordinate(g_str_blue[*humidity % 10], 153, 50); //湿度1の位
     mlcd.displayJpgImageCoordinate(COMMON_ORANGEDOT_IMG_PATH, 186, 50); //ドット
     mlcd.displayJpgImageCoordinate(g_str_blue[0], 220, 50);// 少数点
     mlcd.displayJpgImageCoordinate(WBGT_DEGREE_IMG_PATH, 253, 50);//「℃」
@@ -151,13 +152,36 @@ void AppControl::displayWBGTInit(){ //熱中症モニタ
     mlcd.displayJpgImageCoordinate(COMMON_BUTTON_BACK_IMG_PATH, 120, 200);//戻る画像
 }
 
-void AppControl::displayTempHumiIndex(){
+void AppControl::displayTempHumiIndex(){//熱中症モニタのアラートを表示
+    double temperature;
+    double humidity;
+    WbgtIndex index;
 
-    mlcd.displayJpgImageCoordinate(WBGT_SAFE_IMG_PATH, 0, 100);//安全
-    mlcd.displayJpgImageCoordinate(WBGT_ATTENTION_IMG_PATH, 0, 100);//注意
-    mlcd.displayJpgImageCoordinate(WBGT_ALERT_IMG_PATH, 0, 100);//警戒
-    mlcd.displayJpgImageCoordinate(WBGT_HIGH_ALERT_IMG_PATH, 0, 100);//厳重警戒
-    mlcd.displayJpgImageCoordinate(WBGT_DANGER_IMG_PATH, 0, 100);//危険
+    mwbgt.getWBGT(&temperature, &humidity, &index);//温湿度の計算結果を基にアラートの画面描画を行う
+
+    switch (index)
+    case SAFE:
+        mlcd.displayJpgImageCoordinate(WBGT_SAFE_IMG_PATH, 0, 100);//安全
+    case ATTENTION:
+        mlcd.displayJpgImageCoordinate(WBGT_ATTENTION_IMG_PATH, 0, 100);//注意
+    case ALERT:
+        mlcd.displayJpgImageCoordinate(WBGT_ALERT_IMG_PATH, 0, 100);//警戒
+    case HIGH_ALERT:
+        mlcd.displayJpgImageCoordinate(WBGT_HIGH_ALERT_IMG_PATH, 0, 100);//厳重警戒
+    case DANGER:
+        mlcd.displayJpgImageCoordinate(WBGT_HIGH_ALERT_IMG_PATH, 0, 100);//危険
+
+    if (calc_index >= 10) {
+        mlcd.displayJpgImageCoordinate(g_str_blue[(&temperature / 10) % 10], 120, 0);
+    } else {
+        mlcd.displayJpgImageCoordinate(COMMON_ORANGEFILLWHITE_IMG_PATH, 120, 0);
+    }
+
+    if (calc_index >= 10) {
+        mlcd.displayJpgImageCoordinate(g_str_blue[(&humidity / 10) % 10], 120, 0);
+    } else {
+        mlcd.displayJpgImageCoordinate(COMMON_BLUEFILLWHITE_IMG_PATH, 120, 0);
+    }
 }
 
 void AppControl::displayMusicInit(){//音楽プレイヤー押下時に表示
@@ -371,19 +395,21 @@ void AppControl::controlApplication(){
                 setBtnAllFlgFalse();//ボタンをfalseに
                 mlcd.fillBackgroundWhite();
                 displayWBGTInit();//画面表示
-                displayTempHumiIndex();//温湿度によって画像切り替え
+                displayTempHumiIndex();//アラートの切り替え
                 setStateAction(WBGT,DO);
                 break;
 
             case DO:
                 delay(100);
                 displayTempHumiIndex();//温湿度によって画像切り替え
+                if (m_flag_btnB_is_pressed) {
+                    setBtnAllFlgFalse();
+                    setStateAction(WBGT, EXIT);
+                }
                 break;
 
             case EXIT:
-                break;
-
-            default:
+                setStateAction(MENU,ENTRY);//MENU,ENTRYに移行
                 break;
             }
             break;
